@@ -2,7 +2,8 @@
 <rss version="2.0" xmlns:itunes="http://www.itunes.com/dtds/podcast-1.0.dtd">
   <channel>
     <title>שיעורים מהראשון לציון הרב יצחק יוסף</title>
-    <description>שיעורים מהראשון לציון מרן הרב יצחק יוסף שליט"א</description>
+    <description>שיעורי הלכה מפי מרן הראשון לציון הרב יצחק יוסף שליט"א, מחבר "ילקוט יוסף". פסיקה ספרדית, הלכות שבת ומועדים, ברכות וכשרות על פי דרכו של מרן זצ"ל - אוצר התורה.</description>
+    <itunes:summary>שיעורי הלכה מפי מרן הראשון לציון הרב יצחק יוסף שליט"א, מחבר "ילקוט יוסף". פסיקה ספרדית, הלכות שבת ומועדים, ברכות וכשרות על פי דרכו של מרן זצ"ל - אוצר התורה.</itunes:summary>
     <link>https://rabmeireliyahu.github.io/ravyitzchakyosef</link>
     <language>he</language>
     <itunes:author>הראשון לציון הרב יצחק יוסף</itunes:author>
