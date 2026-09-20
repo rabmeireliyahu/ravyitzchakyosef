@@ -9,6 +9,11 @@ on:
         description: "Link de YouTube (opcional: si lo pones, se publica ese)"
         required: false
         default: ""
+      solo_probar:
+        description: "Solo probar la descarga (no sube ni publica nada)"
+        type: boolean
+        required: false
+        default: false
   push:
     paths:
       - links.txt               # editaste links.txt en GitHub -> corre al momento
@@ -47,9 +52,11 @@ jobs:
           SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL }}
           YT_COOKIES: ${{ secrets.YT_COOKIES }}
           INPUT_URL: ${{ github.event.inputs.url }}
+          SOLO_PROBAR: ${{ github.event.inputs.solo_probar }}
         run: python robot_links.py
 
       - name: Guardar cambios en el repo
+        if: ${{ github.event.inputs.solo_probar != 'true' }}
         run: |
           rm -f cookies.txt
           git config user.name "robot-shiurim"
