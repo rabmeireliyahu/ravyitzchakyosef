@@ -1,0 +1,64 @@
+name: Robot de shiurim
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"      # cada 30 min revisa si hay links nuevos
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Link de YouTube (opcional: si lo pones, se publica ese)"
+        required: false
+        default: ""
+  push:
+    paths:
+      - links.txt               # editaste links.txt en GitHub -> corre al momento
+
+permissions:
+  contents: write
+
+concurrency:
+  group: robot
+  cancel-in-progress: false
+
+jobs:
+  robot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Instalar herramientas
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+          python -m pip install -q -U "yt-dlp[default]" internetarchive mutagen
+
+      - name: Bajar, subir a Archive y armar feed
+        env:
+          IA_ACCESS_KEY: ${{ secrets.IA_ACCESS_KEY }}
+          IA_SECRET_KEY: ${{ secrets.IA_SECRET_KEY }}
+          SHEET_CSV_URL: ${{ vars.SHEET_CSV_URL }}
+          YT_COOKIES: ${{ secrets.YT_COOKIES }}
+          INPUT_URL: ${{ github.event.inputs.url }}
+        run: python robot_links.py
+
+      - name: Guardar cambios en el repo
+        run: |
+          rm -f cookies.txt
+          git config user.name "robot-shiurim"
+          git config user.email "robot@users.noreply.github.com"
+          for f in feed.xml ya_descargados.txt intentos.json fallidos.txt; do [ -f "$f" ] && git add "$f"; done
+          if git diff --cached --quiet; then
+            echo "Nada que guardar."
+            exit 0
+          fi
+          git commit -m "Robot: feed $(date -u +'%d/%m/%Y %H:%M') UTC"
+          git pull --rebase origin ${{ github.ref_name }} || true
+          git push origin HEAD:${{ github.ref_name }}
