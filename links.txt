@@ -1,3 +1,0 @@
-# Pega aqui links de YouTube, uno por linea, y guarda (Commit).
-# El robot los baja, los sube a Archive.org y los agrega al podcast.
-# Los links ya publicados se ignoran solos (ya_descargados.txt).
