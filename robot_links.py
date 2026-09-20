@@ -131,12 +131,18 @@ def links_pendientes():
 
 # ─────────── 2. bajar ───────────
 def _cookies_args():
+    """cookies (secret YT_COOKIES) y/o proxy (secret YT_PROXY) para que YouTube
+    no bloquee al robot: desde las IPs de GitHub pide 'Sign in to confirm'."""
+    args = []
+    proxy = os.environ.get("YT_PROXY", "").strip()
+    if proxy:
+        args += ["--proxy", proxy]
     c = os.environ.get("YT_COOKIES", "")
-    if not c.strip():
-        return []
-    p = Path("cookies.txt")
-    p.write_text(c, encoding="utf-8")
-    return ["--cookies", str(p)]
+    if c.strip():
+        p = Path("cookies.txt")
+        p.write_text(c, encoding="utf-8")
+        args += ["--cookies", str(p)]
+    return args
 
 
 def bajar(vid):
