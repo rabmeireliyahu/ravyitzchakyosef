@@ -150,7 +150,11 @@ def bajar(vid):
             "-o", str(CARPETA / "%(title)s.%(ext)s")] + _cookies_args()
     extra = os.environ.get("YTDLP_EXTRA", "").split()
     # varios "clientes" de YouTube: si uno esta bloqueado, otro suele pasar
-    variantes = [[], ["--extractor-args", "youtube:player_client=default,mweb"],
+    variantes = [[],
+                 ["--extractor-args", "youtube:player_client=mweb"],
+                 ["--extractor-args", "youtube:player_client=tv"],
+                 ["--extractor-args", "youtube:player_client=android_vr"],
+                 ["--extractor-args", "youtube:player_client=web_safari"],
                  ["--extractor-args", "youtube:player_client=tv_embedded,web_embedded"]]
     for v in variantes:
         cmd = base + extra + v + [url]

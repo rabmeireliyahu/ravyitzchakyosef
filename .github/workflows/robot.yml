@@ -43,7 +43,13 @@ jobs:
       - name: Instalar herramientas
         run: |
           sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
-          python -m pip install -q -U "yt-dlp[default]" internetarchive mutagen
+          python -m pip install -q -U "yt-dlp[default]" bgutil-ytdlp-pot-provider internetarchive mutagen
+
+      - name: Proveedor de PO token (para que YouTube no bloquee al robot)
+        run: |
+          docker run -d --name bgutil --init -p 4416:4416 brainicism/bgutil-ytdlp-pot-provider
+          for i in $(seq 1 20); do curl -sf http://127.0.0.1:4416/ping >/dev/null && break; sleep 2; done
+          curl -s http://127.0.0.1:4416/ping || echo "(bgutil no responde; se sigue sin PO token)"
 
       - name: Bajar, subir a Archive y armar feed
         env:
