@@ -131,12 +131,18 @@ def links_pendientes():
 
 # ─────────── 2. bajar ───────────
 def _cookies_args():
+    """cookies (secret YT_COOKIES) y/o proxy (secret YT_PROXY) para que YouTube
+    no bloquee al robot: desde las IPs de GitHub pide 'Sign in to confirm'."""
+    args = []
+    proxy = os.environ.get("YT_PROXY", "").strip()
+    if proxy:
+        args += ["--proxy", proxy]
     c = os.environ.get("YT_COOKIES", "")
-    if not c.strip():
-        return []
-    p = Path("cookies.txt")
-    p.write_text(c, encoding="utf-8")
-    return ["--cookies", str(p)]
+    if c.strip():
+        p = Path("cookies.txt")
+        p.write_text(c, encoding="utf-8")
+        args += ["--cookies", str(p)]
+    return args
 
 
 def bajar(vid):
@@ -150,7 +156,11 @@ def bajar(vid):
             "-o", str(CARPETA / "%(title)s.%(ext)s")] + _cookies_args()
     extra = os.environ.get("YTDLP_EXTRA", "").split()
     # varios "clientes" de YouTube: si uno esta bloqueado, otro suele pasar
-    variantes = [[], ["--extractor-args", "youtube:player_client=default,mweb"],
+    variantes = [[],
+                 ["--extractor-args", "youtube:player_client=mweb"],
+                 ["--extractor-args", "youtube:player_client=tv"],
+                 ["--extractor-args", "youtube:player_client=android_vr"],
+                 ["--extractor-args", "youtube:player_client=web_safari"],
                  ["--extractor-args", "youtube:player_client=tv_embedded,web_embedded"]]
     for v in variantes:
         cmd = base + extra + v + [url]
@@ -251,7 +261,45 @@ def agregar_al_feed(mp3):
 
 
 # ─────────── main ───────────
+def ultimo_del_canal(url_canal):
+    """id del video mas reciente de un canal (sin bajar nada)."""
+    cmd = ["yt-dlp", "--flat-playlist", "--playlist-end", "1", "--no-warnings",
+           "--print", "%(id)s", url_canal] + _cookies_args()
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
+                           errors="replace", timeout=120)
+        ids = ids_en_texto(" ".join(f"https://youtu.be/{l.strip()}" for l in r.stdout.splitlines() if l.strip()))
+        return ids[0] if ids else None
+    except Exception as e:
+        log(f"no pude listar el canal: {e}")
+        return None
+
+
+def solo_probar():
+    """Modo prueba: baja UN video y lo borra. No sube a Archive ni toca el feed."""
+    log("=== MODO PRUEBA: solo bajar, sin publicar ===")
+    ids = ids_en_texto(os.environ.get("INPUT_URL", ""))
+    vid = ids[0] if ids else None
+    if not vid:
+        canal = os.environ.get("CANAL_PRUEBA", "https://www.youtube.com/@Maran_1/videos")
+        log(f"sin link: tomo el ultimo video de {canal}")
+        vid = ultimo_del_canal(canal)
+    if not vid:
+        log("PRUEBA FALLIDA: YouTube no dejo ni listar el canal desde GitHub.")
+        sys.exit(1)
+    log(f"--- https://www.youtube.com/watch?v={vid}")
+    mp3 = bajar(vid)
+    if not mp3:
+        log("PRUEBA FALLIDA: YouTube bloqueo la descarga desde GitHub. Poner el secret YT_COOKIES.")
+        sys.exit(1)
+    log(f"PRUEBA OK ✓ bajo {mp3.name} ({mp3.stat().st_size / 1_048_576:.1f} MB, {duracion_mp3(mp3) or '?'})")
+    mp3.unlink()
+
+
 def main():
+    if os.environ.get("SOLO_PROBAR", "").lower() in ("1", "true", "yes"):
+        solo_probar()
+        return
     log(f"=== ROBOT DE LINKS [{CFG['titulo']}] ===")
     pend = links_pendientes()
     if not pend:

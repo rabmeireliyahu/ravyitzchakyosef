@@ -27,9 +27,26 @@ Spotify/Apple lo jalan solos del feed.
 |---|---|
 | `IA_ACCESS_KEY` | https://archive.org/account/s3.php (con la cuenta dueña del item `harav-yitzchak-yosef-shiurim`) |
 | `IA_SECRET_KEY` | misma pagina |
-| `YT_COOKIES` | *opcional*. Solo si YouTube bloquea al robot ("Sign in to confirm you're not a bot"): exportar cookies de youtube.com en formato Netscape (extension "Get cookies.txt LOCALLY") y pegar el contenido. |
+| `YT_COOKIES` | **necesario** (ver abajo). Cookies de youtube.com en formato Netscape: entrar a YouTube en Chrome con una cuenta de Google *secundaria*, extension "Get cookies.txt LOCALLY" → Export → abrir el archivo y pegar todo el texto. |
+| `YT_PROXY` | *alternativa a las cookies*: un proxy residencial (`http://usuario:clave@host:puerto`). |
 
 No hace falta ningun token de GitHub: el workflow usa el suyo propio.
+
+### Por que hacen falta las cookies
+
+Se probo (Actions → "Robot de shiurim" → Run workflow → *solo probar*):
+desde los servidores de GitHub, YouTube deja listar el canal pero bloquea
+la descarga con "Sign in to confirm you're not a bot", con todos los
+clientes de yt-dlp y aun con el proveedor de PO token (bgutil) andando.
+Con cookies de una sesion iniciada el bloqueo se levanta. Usar una cuenta
+de Google secundaria, porque YouTube puede cerrar la sesion o pedir
+verificacion a esa cuenta; si eso pasa, se vuelven a exportar y pegar.
+
+### Probar sin publicar
+
+Actions → "Robot de shiurim" → Run workflow → marcar **solo probar**.
+Baja el ultimo video del canal (o el link que pongas) y lo borra, sin
+subir a Archive ni tocar el feed. Verde = YouTube deja bajar.
 
 ### Archivos de control
 
